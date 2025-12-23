@@ -1,0 +1,62 @@
+graph TB
+    subgraph "Client Layer"
+        A[Mobile App - React Native]
+        B[Web Portal - Next.js]
+        C[Procore/Autodesk Plugin]
+    end
+    
+    subgraph "API & Gateway Layer"
+        D[Kong API Gateway]
+        E[Auth0 + RBAC]
+        F[Rate Limiting]
+    end
+    
+    subgraph "Orchestration Layer"
+        G[Temporal.io Workflows]
+        H[Event Bus - Redis Pub/Sub]
+    end
+    
+    subgraph "AI Agent Microservices"
+        I[Blueprint Intelligence]
+        J[RFI Predictor]
+        K[Sub Co-Pilot]
+        L[Safety Monitor]
+        M[BidBrain Matcher]
+    end
+    
+    subgraph "Business Services"
+        N[Marketplace Service]
+        O[Compliance Engine]
+        P[Payment Processing]
+    end
+    
+    subgraph "Data Layer"
+        Q[MongoDB - Documents]
+        R[Neo4j - Knowledge Graph]
+        S[Qdrant - Vector DB]
+        T[Redis - Cache]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> G
+    G --> I
+    G --> J
+    G --> K
+    G --> L
+    G --> M
+    I --> R
+    J --> S
+    K --> Q
+    L --> S
+    M --> N
+    N --> O
+    O --> P
+    P --> Q
+    
+    style I fill:#e1f5fe
+    style J fill:#e1f5fe
+    style K fill:#e1f5fe
+    style L fill:#e1f5fe
+    style M fill:#e1f5fe

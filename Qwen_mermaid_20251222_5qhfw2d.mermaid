@@ -1,0 +1,29 @@
+graph TD
+  A[User Uploads Blueprint] --> B{Temporal Workflow}
+  B --> C[Blueprint Agent]
+  C --> D[Extract Components + Sequences]
+  D --> E[Store in Qdrant Vector DB]
+  E --> F[RFI Predictor Agent]
+  F --> G[Flag Missing Specs]
+  G --> H[Push Alert to Mobile App]
+
+  I[Sub Arrives on Site] --> J{Temporal Workflow}
+  J --> K[GPS Check-In]
+  K --> L[Verify Insurance via OCR]
+  L --> M[Auto-Schedule Next Task]
+  M --> N[Send SMS Reminder]
+
+  O[Email Received] --> P{Temporal Workflow}
+  P --> Q[RFI Predictor Agent]
+  Q --> R[Auto-Draft RFI Response]
+  R --> S[Assign to Superintendent]
+
+  T[Bid Board Scraped] --> U{Temporal Workflow}
+  U --> V[BidBrain Matcher]
+  V --> W[Match Subs by Trade/Location/Bonding]
+  W --> X[Push “Bid Alert” to GC]
+
+  H --> Y[Mobile App: Voice + Push]
+  N --> Y
+  S --> Y
+  X --> Y

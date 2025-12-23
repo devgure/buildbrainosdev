@@ -1,0 +1,20 @@
+image:
+  repository: buildbrain/blueprint-agent
+  tag: latest
+port: 8100
+replicaCount: 1
+env:
+  config:
+    MINIO_ENDPOINT: http://minio:9000
+    MINIO_BUCKET: buildbrain-blueprints
+  secret:
+    MINIO_ACCESS_KEY: ""
+    MINIO_SECRET_KEY: ""
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+  limits:
+    cpu: "1"
+    memory: "1Gi"

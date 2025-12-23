@@ -1,0 +1,32 @@
+# CI values override: use :ci image tags for images built in CI
+services:
+  gateway:
+    enabled: true
+    image: buildbrain/gateway:ci
+    port: 4000
+    replicas: 1
+  project-service:
+    enabled: true
+    image: buildbrain/project-service:ci
+    port: 5000
+    replicas: 1
+  auth-service:
+    enabled: true
+    image: buildbrain/auth-service:ci
+    port: 5100
+    replicas: 1
+  ai-service:
+    enabled: true
+    image: buildbrain/ai-service:ci
+    port: 8000
+    replicas: 1
+  payment-service:
+    enabled: true
+    image: buildbrain/payment-service:ci
+    port: 5200
+    replicas: 1
+  blueprint-agent:
+    enabled: true
+    image: buildbrain/blueprint-agent:ci
+    port: 8100
+    replicas: 1

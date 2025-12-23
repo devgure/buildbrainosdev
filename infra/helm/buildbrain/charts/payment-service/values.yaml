@@ -1,0 +1,19 @@
+image:
+  repository: buildbrain/payment-service
+  tag: latest
+port: 5200
+replicaCount: 1
+env:
+  config:
+    MONGO_URL: mongodb://mongo:27017
+  secret:
+    STRIPE_SECRET_KEY: ""
+    STRIPE_WEBHOOK_SECRET: ""
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"

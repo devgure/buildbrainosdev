@@ -1,0 +1,4 @@
+{
+  "dashboard": { "welcome": "Bienvenido a BuildBrain" },
+  "buttons": { "open_blueprint": "Abrir plano", "start_inspection": "Iniciar inspección", "open_marketplace": "Abrir mercado" }
+}

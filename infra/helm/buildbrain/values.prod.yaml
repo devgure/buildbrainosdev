@@ -1,0 +1,47 @@
+# Production values example
+services:
+  gateway:
+    enabled: true
+    image: registry.example.com/buildbrain/gateway:stable
+    port: 4000
+    replicas: 3
+    env:
+      config:
+        MONGO_URL: mongodb://mongo:27017
+        REDIS_URL: redis://redis:6379
+      secret:
+        STRIPE_SECRET_KEY: "{{ .Values.stripe.secret }}"
+  project-service:
+    enabled: true
+    image: registry.example.com/buildbrain/project-service:stable
+    port: 5000
+    replicas: 2
+  auth-service:
+    enabled: true
+    image: registry.example.com/buildbrain/auth-service:stable
+    port: 5100
+    replicas: 2
+  ai-service:
+    enabled: true
+    image: registry.example.com/buildbrain/ai-service:stable
+    port: 8000
+    replicas: 2
+  payment-service:
+    enabled: true
+    image: registry.example.com/buildbrain/payment-service:stable
+    port: 5200
+    replicas: 2
+  blueprint-agent:
+    enabled: true
+    image: registry.example.com/buildbrain/blueprint-agent:stable
+    port: 8100
+    replicas: 1
+
+# Add production secrets in a secure mechanism (ExternalSecrets / sealed-secrets recommended)
+resources:
+  defaultRequests:
+    cpu: "200m"
+    memory: "256Mi"
+  defaultLimits:
+    cpu: "1"
+    memory: "1Gi"

@@ -1,0 +1,215 @@
+buildbrainos/
+├── 📁 client/                       # Multi-platform UI
+│   ├── 📁 mobile/                   # React Native + Expo (iOS/Android)
+│   │   ├── app.json
+│   │   ├── App.tsx
+│   │   ├── components/
+│   │   ├── screens/
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Projects/
+│   │   │   ├── BlueprintViewer.tsx
+│   │   │   ├── SafetyInspection.tsx
+│   │   │   └── BidMarketplace.tsx
+│   │   ├── lib/
+│   │   │   ├── database/            # WatermelonDB setup
+│   │   │   ├── location/            # Geofencing logic
+│   │   │   └── voice/               # Whisper + Llama-3 intent routing
+│   │   ├── assets/
+│   │   ├── hooks/
+│   │   ├── navigation/
+│   │   ├── services/api.ts          # Axios + offline sync layer
+│   │   └── i18n/                    # LinguiJS (EN/ES/FR)
+│   │
+│   ├── 📁 web-mobile/               # PWA (React + Vite) for tablets & field
+│   │   ├── public/
+│   │   ├── src/
+│   │   │   ├── components/
+│   │   │   ├── pages/
+│   │   │   ├── hooks/
+│   │   │   ├── services/api.ts
+│   │   │   ├── i18n/
+│   │   │   └── App.tsx
+│   │   └── vite.config.ts
+│   │
+│   └── 📁 web-desktop/              # Admin Portal (Next.js 14 App Router)
+│       ├── public/
+│       ├── src/
+│       │   ├── components/
+│       │   ├── pages/
+│       │   ├── layout/
+│       │   ├── services/api.ts
+│       │   ├── i18n/
+│       │   └── App.tsx
+│       └── next.config.js
+│
+├── 📁 gateway/                      # Kong API Gateway (Node.js)
+│   ├── server.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── projects.js
+│   │   └── agents.js
+│   ├── middleware/auth.js           # JWT + RBAC
+│   ├── graphql/schema.graphql       # Optional GraphQL layer
+│   ├── docker-compose.yml
+│   └── Dockerfile
+│
+├── 📁 services/                     # NestJS Microservices (TypeScript)
+│   ├── 📁 auth-service/             # Auth0 SSO + RBAC
+│   │   ├── src/
+│   │   │   ├── controllers/
+│   │   │   ├── models/user.entity.ts
+│   │   │   ├── services/auth.service.ts
+│   │   │   └── main.ts
+│   │   ├── package.json
+│   │   ├── Dockerfile
+│   │   └── k8s/deployment.yaml
+│   │
+│   ├── 📁 user-service/             # User & company profiles
+│   │   ├── src/controllers/user.controller.ts
+│   │   ├── src/models/user.entity.ts
+│   │   └── Dockerfile
+│   │
+│   ├── 📁 project-service/          # Core project entity
+│   │   ├── src/controllers/project.controller.ts
+│   │   ├── src/models/project.entity.ts
+│   │   └── Dockerfile
+│   │
+│   ├── 📁 document-service/         # PDF ingestion + metadata extraction
+│   │   ├── src/controllers/document.controller.ts
+│   │   ├── src/services/pdf.extractor.ts
+│   │   └── Dockerfile
+│   │
+│   ├── 📁 compliance-service/       # Insurance/license validation
+│   │   ├── src/controllers/compliance.controller.ts
+│   │   ├── src/services/ocr.validator.ts
+│   │   └── Dockerfile
+│   │
+│   ├── 📁 marketplace-service/      # Bid posting & matching
+│   │   ├── src/controllers/marketplace.controller.ts
+│   │   ├── src/models/bid.entity.ts
+│   │   └── Dockerfile
+│   │
+│   ├── 📁 notification-service/     # SMS, Push, Email
+│   │   ├── src/services/twilio.service.ts
+│   │   └── Dockerfile
+│   │
+│   ├── 📁 analytics-service/        # Usage tracking, safety scores
+│   │   ├── src/controllers/analytics.controller.ts
+│   │   └── Dockerfile
+│   │
+│   └── 📁 shared-types/             # Shared interfaces across services
+│       ├── src/types/
+│       │   ├── user.interface.ts
+│       │   ├── project.interface.ts
+│       │   └── ai-agent.interface.ts
+│       └── package.json
+│
+├── 📁 ai-agents/                    # Python FastAPI Microservices (Open Source LLMs)
+│   ├── 📁 blueprint-agent/          # Llama-3-8B + Qwen-VL → extract specs, clashes
+│   │   ├── app.py
+│   │   ├── models/blueprint_analyzer.py
+│   │   ├── requirements.txt
+│   │   └── Dockerfile
+│   │
+│   ├── 📁 safety-agent/             # OpenCV + YOLOv8 → detect PPE, fall hazards
+│   │   ├── app.py
+│   │   ├── models/safety_detector.py
+│   │   └── Dockerfile
+│   │
+│   ├── 📁 compliance-ocr-agent/     # Tesseract + AWS Textract → validate COIs
+│   │   ├── app.py
+│   │   ├── models/coi_validator.py
+│   │   └── Dockerfile
+│   │
+│   ├── 📁 bid-scraper-agent/        # Scrape Dodge, ConstructConnect, SAM.gov
+│   │   ├── scraper.py
+│   │   ├── models/bid_matcher.py
+│   │   └── Dockerfile
+│   │
+│   └── 📁 scheduler-agent/          # CPM scheduling + auto-sub assignment
+│       ├── app.py
+│       ├── models/scheduler.py
+│       └── Dockerfile
+│
+├── 📁 orchestration/                # Temporal.io + LangGraph Workflows
+│   ├── workflows/
+│   │   ├── rfi_workflow.py          # RFI prediction → draft → assign → track
+│   │   ├── sub_onboarding.py        # GPS check-in → insurance verify → schedule
+│   │   └── safety_alert.py          # Photo → analyze → alert → log
+│   ├── activities/
+│   │   ├── send_sms.py
+│   │   ├── validate_insurance.py
+│   │   └── extract_blueprint.py
+│   ├── docker-compose.yml
+│   └── Dockerfile
+│
+├── 📁 data/                         # Data Layer
+│   ├── mongodb/                     # Prisma schema + migrations
+│   │   ├── schema.prisma
+│   │   ├── migrations/
+│   │   └── seed.ts
+│   │
+│   ├── qdrant/                      # Vector DB for RAG (blueprints, RFIs)
+│   │   ├── config.yaml
+│   │   └── collections/
+│   │       └── buildbrain.yaml
+│   │
+│   ├── redis.conf                   # Cache & Pub/Sub
+│   └── neo4j/                       # Knowledge Graph (optional for future)
+│       └── constraints.cql
+│
+├── 📁 infra/                        # Infrastructure as Code
+│   ├── k8s/
+│   │   ├── namespace.yaml
+│   │   ├── ingress.yaml
+│   │   ├── postgres-deployment.yaml
+│   │   ├── mongodb-statefulset.yaml
+│   │   ├── redis-deployment.yaml
+│   │   └── kustomization.yaml
+│   │
+│   ├── docker/
+│   │   └── docker-compose.yml       # Local dev stack (all services)
+│   │
+│   └── terraform/                   # AWS provisioning
+│       ├── main.tf
+│       ├── variables.tf
+│       └── eks-cluster.tf
+│
+├── 📁 monitoring/                   # Observability
+│   ├── prometheus.yml
+│   ├── grafana/dashboards/
+│   │   └── buildbrain.json
+│   ├── elasticsearch/
+│   │   └── logstash.conf
+│   └── sentry.config.js
+│
+├── 📁 admin-dashboard/              # Next.js Admin Portal
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── Users.tsx
+│   │   │   ├── Reports.tsx
+│   │   │   ├── Analytics.tsx
+│   │   │   └── Settings.tsx
+│   │   ├── services/adminApi.ts
+│   │   └── layout/
+│   └── Dockerfile
+│
+├── 📁 tests/                        # Testing
+│   ├── unit/
+│   │   ├── auth.test.ts
+│   │   └── project.test.ts
+│   ├── integration/
+│   │   └── match.integration.test.ts
+│   └── e2e/
+│       ├── mobile.test.js           # Detox
+│       └── web.test.js              # Cypress
+│
+├── 📁 scripts/
+│   ├── deploy.sh
+│   ├── migrate-db.js
+│   └── seed-ai-models.py
+│
+├── 📄 .gitignore
+├── 📄 README.md
+├── 📄 Makefile                      # Common commands: make dev, make test, make deploy
+└── 📄 docker-compose.yml            # For local dev (gateway + all services)

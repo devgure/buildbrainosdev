@@ -1,0 +1,10 @@
+{
+  "dashboard": {
+    "welcome": "Welcome to BuildBrain"
+  },
+  "buttons": {
+    "open_blueprint": "Open Blueprint",
+    "start_inspection": "Start Safety Inspection",
+    "open_marketplace": "Open Marketplace"
+  }
+}

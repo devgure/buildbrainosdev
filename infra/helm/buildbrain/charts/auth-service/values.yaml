@@ -1,0 +1,19 @@
+image:
+  repository: buildbrain/auth-service
+  tag: latest
+port: 5100
+replicaCount: 1
+env:
+  config:
+    MONGO_URL: mongodb://mongo:27017
+  secret:
+    MONGO_USER: ""
+    MONGO_PASS: ""
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"

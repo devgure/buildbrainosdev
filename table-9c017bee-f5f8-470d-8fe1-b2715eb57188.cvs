@@ -1,0 +1,14 @@
+﻿Layer,Technology
+Frontend Mobile,"React Native + Expo (iOS/Android), Offline via WatermelonDB"
+Frontend Web,Next.js 14 (App Router) + Tailwind CSS
+Backend Services,"NestJS (Node.js) — modular, TypeScript, scalable microservices"
+AI Agents,"Python FastAPI — self-hosted Llama-3-8B, Qwen-VL, Tesseract, YOLOv8"
+Orchestration,Temporal.io (long-running workflows) + Redis Pub/Sub (events)
+Database,MongoDB (Prisma ORM) + Qdrant (vector DB) + Redis (cache)
+Auth,Auth0 (B2B SSO) + RBAC per project
+File Storage,MinIO (self-hosted S3) or AWS S3
+Geolocation,Mapbox + Expo Location (background GPS)
+Comms,"Twilio (SMS), SendGrid (email), Firebase Cloud Messaging (push)"
+Cloud,"AWS EKS (Kubernetes), S3, CloudFront, EventBridge"
+Monitoring,Prometheus + Grafana + Sentry
+CI/CD,GitHub Actions + Docker + Kubernetes

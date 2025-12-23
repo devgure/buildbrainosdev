@@ -1,0 +1,205 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build docker images
+        run: |
+          docker compose build --progress plain
+
+      - name: Start services (detached)
+        run: |
+          docker compose up -d
+
+      - name: Wait for services to become healthy
+        run: |
+          for i in `seq 1 30`; do
+            if curl -fs http://localhost:4000/live >/dev/null && curl -fs http://localhost:5000/live >/dev/null && curl -fs http://localhost:8000/live >/dev/null && curl -fs http://localhost:8100/live >/dev/null; then
+              echo "services healthy"
+              exit 0
+            fi
+            echo "waiting for services... ($i)"
+            sleep 3
+          done
+          echo "services did not become healthy" && docker compose logs && exit 1
+
+      - name: Run MinIO upload + AI ingest test
+        run: |
+          python - <<'PY'
+import os, boto3, time, sys
+endpoint = os.getenv('MINIO_ENDPOINT','http://localhost:9000')
+access = os.getenv('MINIO_ROOT_USER','minioadmin')
+secret = os.getenv('MINIO_ROOT_PASSWORD','minioadmin')
+bucket = os.getenv('MINIO_BUCKET','buildbrain-blueprints')
+print('Waiting briefly to ensure MinIO and services are ready')
+time.sleep(5)
+session = boto3.session.Session()
+client = session.client('s3', endpoint_url=endpoint, aws_access_key_id=access, aws_secret_access_key=secret)
+try:
+    client.create_bucket(Bucket=bucket)
+except Exception as e:
+    print('create_bucket or already exists:', e)
+key = 'ci/test.txt'
+client.put_object(Bucket=bucket, Key=key, Body=b'Test from CI')
+url = client.generate_presigned_url('get_object', Params={'Bucket': bucket, 'Key': key}, ExpiresIn=3600)
+print('uploaded, presigned url:', url)
+import requests
+ai = os.getenv('AI_SERVICE_URL','http://localhost:8000')
+resp = requests.post(f"{ai}/ai/ingest", json={'source_url': url, 'filename':'ci-test.txt','snippet':'ci test'})
+print('ai status', resp.status_code)
+if resp.status_code >= 400:
+    print('AI ingest error:', resp.text)
+    sys.exit(1)
+print('AI ingest ok')
+PY
+
+      - name: Simulate Stripe webhook to payment-service
+        env:
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || '' }}
+        run: |
+          python - <<'PY'
+    import os, time, requests, json, hmac, hashlib
+    print('Waiting briefly for payment-service...')
+    time.sleep(2)
+    url = 'http://localhost:5200/webhook'
+    secret = os.getenv('STRIPE_WEBHOOK_SECRET','')
+    stripe_key = os.getenv('STRIPE_SECRET_KEY','')
+    payment_id = 'pi_test_123'
+    if stripe_key:
+      # create a test payment intent using Stripe API so webhook references a real object
+      print('Creating a test payment_intent via Stripe API')
+      headers = {'Authorization': f'Bearer {stripe_key}'}
+      resp = requests.post('https://api.stripe.com/v1/payment_intents', data={'amount':'100','currency':'usd'}, headers=headers)
+      if resp.status_code >= 400:
+        print('Failed creating payment intent', resp.status_code, resp.text)
+      else:
+        payment_id = resp.json().get('id') or payment_id
+        print('Created payment intent', payment_id)
+
+    payload = {'type':'payment_intent.succeeded','data':{'object':{'id':payment_id}}}
+    payload_json = json.dumps(payload, separators=(',',':'))
+    headers = {'Content-Type':'application/json'}
+    if secret:
+      timestamp = str(int(time.time()))
+      signed_payload = f"{timestamp}.{payload_json}".encode()
+      sig = hmac.new(secret.encode(), signed_payload, hashlib.sha256).hexdigest()
+      signature_header = f"t={timestamp},v1={sig}"
+      headers['Stripe-Signature'] = signature_header
+      print('Sending signed webhook (t=)', timestamp)
+    else:
+      print('No STRIPE_WEBHOOK_SECRET set; sending unsigned webhook (dev only)')
+
+    resp = requests.post(url, data=payload_json, headers=headers)
+    print('webhook status', resp.status_code, resp.text)
+    if resp.status_code >= 400:
+      raise SystemExit('Webhook simulation failed')
+    PY
+
+      - name: Create MinIO bucket and upload sample, then call AI ingest
+        env:
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ROOT_USER || env.MINIO_ROOT_USER }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_ROOT_PASSWORD || env.MINIO_ROOT_PASSWORD }}
+          MINIO_BUCKET: ${MINIO_BUCKET}
+          AI_SERVICE_URL: ${AI_SERVICE_URL}
+        run: |
+          python - <<'PY'
+import os, boto3, time, sys
+endpoint = os.getenv('MINIO_ENDPOINT','http://localhost:9000')
+access = os.getenv('MINIO_ACCESS_KEY')
+secret = os.getenv('MINIO_SECRET_KEY')
+bucket = os.getenv('MINIO_BUCKET','buildbrain-blueprints')
+if not access or not secret:
+    print('MinIO credentials not set; skipping bucket step')
+    sys.exit(0)
+print('Waiting for MinIO...')
+time.sleep(3)
+session = boto3.session.Session()
+client = session.client('s3', endpoint_url=endpoint, aws_access_key_id=access, aws_secret_access_key=secret)
+try:
+    client.create_bucket(Bucket=bucket)
+except Exception as e:
+    print('create_bucket:', e)
+# upload a small text file
+key = 'ci/test.txt'
+client.put_object(Bucket=bucket, Key=key, Body=b'Test from CI')
+url = client.generate_presigned_url('get_object', Params={'Bucket': bucket, 'Key': key}, ExpiresIn=3600)
+print('uploaded, presigned url:', url)
+# Call AI service ingest endpoint with JSON payload
+import requests
+ai = os.getenv('AI_SERVICE_URL','http://localhost:8000')
+resp = requests.post(f"{ai}/ai/ingest", json={'source_url': url, 'filename':'ci-test.txt','snippet':'ci test'})
+print('ai status', resp.status_code, resp.text)
+if resp.status_code >= 400:
+    raise SystemExit('AI ingest failed')
+PY
+
+      - name: Teardown
+        if: always()
+        run: docker compose down --volumes
+
+  k8s-integration:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Kind
+        uses: engineerd/setup-kind@v0.6.0
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Build images for Kind
+        run: |
+          docker build -t buildbrain/gateway:ci ./gateway
+          docker build -t buildbrain/project-service:ci ./services/project-service
+          docker build -t buildbrain/auth-service:ci ./services/auth-service
+          docker build -t buildbrain/ai-service:ci ./services/ai-service
+          docker build -t buildbrain/payment-service:ci ./services/payment-service
+          docker build -t buildbrain/blueprint-agent:ci ./package-services/blueprint-agent
+
+      - name: Load images into kind
+        run: |
+          kind load docker-image buildbrain/gateway:ci
+          kind load docker-image buildbrain/project-service:ci
+          kind load docker-image buildbrain/auth-service:ci
+          kind load docker-image buildbrain/ai-service:ci
+          kind load docker-image buildbrain/payment-service:ci
+          kind load docker-image buildbrain/blueprint-agent:ci
+
+      - name: Render Helm templates and apply to kind
+        run: |
+          helm repo add stable https://charts.helm.sh/stable || true
+          helm template infra/helm/buildbrain -f infra/helm/buildbrain/values-ci.yaml > infra/k8s/rendered-ci.yaml
+          kubectl apply -f infra/k8s/rendered-ci.yaml
+
+      - name: Wait for deployments
+        run: |
+          kubectl wait --for=condition=available deployment --all --timeout=180s
+
+      - name: Port-forward gateway and run readiness check
+        run: |
+          kubectl port-forward svc/gateway 40000:4000 &
+          sleep 5
+          curl -fsS http://localhost:40000/live
+          curl -fsS http://localhost:40000/ready
+
+      - name: Cleanup kind
+        if: always()
+        run: |
+          kind delete cluster || true

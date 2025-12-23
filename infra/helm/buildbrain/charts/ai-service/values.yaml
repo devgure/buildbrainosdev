@@ -1,0 +1,18 @@
+image:
+  repository: buildbrain/ai-service
+  tag: latest
+port: 8000
+replicaCount: 1
+env:
+  config:
+    REDIS_URL: redis://redis:6379
+  secret:
+    REDIS_PASS: ""
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+  limits:
+    cpu: "1"
+    memory: "1Gi"

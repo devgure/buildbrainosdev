@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "BuildBrain Mobile",
+    "slug": "buildbrain-mobile",
+    "version": "1.0.0",
+    "platforms": ["ios","android"],
+    "sdkVersion": "48.0.0"
+  }
+}

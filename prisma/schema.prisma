@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @map("_id") @default(auto())
+  authId    String?  @unique
+  email     String?  @unique
+  name      String?
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          String   @id @map("_id") @default(auto())
+  name        String
+  address     String?
+  ownerId     String?
+  createdAt   DateTime @default(now())
+}
+
+model StripeEvent {
+  id        String   @id @map("_id") @default(auto())
+  eventType String
+  payload   Json
+  receivedAt DateTime @default(now())
+  processed Boolean  @default(false)
+}
+
+model WebhookJob {
+  id           String   @id @map("_id") @default(auto())
+  eventId      String
+  status       String   @default("pending")
+  attempts     Int      @default(0)
+  nextAttempt  DateTime @default(now())
+}
+
+model Payment {
+  id               String   @id @map("_id") @default(auto())
+  paymentIntentId  String   @unique
+  amount           Int
+  currency         String
+  status           String
+  createdAt        DateTime @default(now())
+}
+
+model PricingPlan {
+  id          String   @id @map("_id") @default(auto())
+  key         String   @unique
+  name        String
+  description String?
+  priceCents  Int?
+  interval    String?   // month, year, one_time
+  metadata    Json?
+}
+
+model Subscription {
+  id           String   @id @map("_id") @default(auto())
+  userId       String
+  planKey      String
+  stripeSubId  String?
+  status       String
+  startedAt    DateTime @default(now())
+}
+
+model Transaction {
+  id          String   @id @map("_id") @default(auto())
+  userId      String?
+  amount      Int
+  currency    String
+  type        String
+  createdAt   DateTime @default(now())
+}

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blueprint-agent
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: blueprint-agent
+  template:
+    metadata:
+      labels:
+        app: blueprint-agent
+    spec:
+      containers:
+      - name: blueprint-agent
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        ports:
+        - containerPort: {{ .Values.port }}
+        livenessProbe:
+          httpGet:
+            path: /live
+            port: {{ .Values.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: {{ .Values.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5

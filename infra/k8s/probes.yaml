@@ -1,0 +1,50 @@
+# Example Kubernetes liveness and readiness probes for BuildBrain services
+# Apply these into your Deployments spec under `containers[].livenessProbe` and `readinessProbe`.
+
+apiVersion: v1
+kind: List
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: gateway
+  spec: {}
+
+# Example probe snippets (use inside your container spec):
+# livenessProbe:
+#   httpGet:
+#     path: /live
+#     port: 4000
+#   initialDelaySeconds: 10
+#   periodSeconds: 10
+#   timeoutSeconds: 3
+#   failureThreshold: 3
+# readinessProbe:
+#   httpGet:
+#     path: /ready
+#     port: 4000
+#   initialDelaySeconds: 5
+#   periodSeconds: 5
+#   timeoutSeconds: 3
+#   failureThreshold: 3
+
+# Example for a service that requires DB connectivity (project-service):
+# livenessProbe:
+#   httpGet:
+#     path: /live
+#     port: 5000
+#   initialDelaySeconds: 10
+#   periodSeconds: 10
+# readinessProbe:
+#   httpGet:
+#     path: /ready
+#     port: 5000
+#   initialDelaySeconds: 5
+#   periodSeconds: 5
+#   timeoutSeconds: 3
+#   failureThreshold: 5
+
+# Notes:
+# - Keep liveness probes cheap (no blocking IO); use /live for that.
+# - Readiness probes may perform short DB or external dependency checks, but should fail fast (<3s).
+# - Tune initialDelaySeconds to allow the application to warm up (apply sensible values depending on DB cold start).

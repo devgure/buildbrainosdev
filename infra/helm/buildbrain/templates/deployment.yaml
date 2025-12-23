@@ -1,0 +1,66 @@
+{{- /* Deployment template that iterates configured services */ -}}
+{{- $root := . -}}
+{{- range $name, $svc := .Values.services -}}
+{{- if $svc.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+spec:
+  replicas: {{ $svc.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+      - name: {{ $name }}
+        image: {{ $svc.image }}
+        imagePullPolicy: {{ $.Values.image.pullPolicy | default "IfNotPresent" }}
+        ports:
+        - containerPort: {{ $svc.port }}
+        livenessProbe:
+          httpGet:
+            path: /live
+            port: {{ $svc.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: {{ $svc.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+{{- end }}
+---
+{{- end }}
+{{- $svc := .Values -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "buildbrain.fullname" . }}
+  labels:
+    app: {{ include "buildbrain.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "buildbrain.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "buildbrain.name" . }}
+    spec:
+      containers:
+        - name: {{ include "buildbrain.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          resources: {{ toYaml .Values.resources | indent 12 }}

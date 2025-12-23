@@ -1,0 +1,61 @@
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
+services:
+  gateway:
+    enabled: true
+    image: buildbrain/gateway:latest
+    port: 4000
+    replicas: 2
+  project-service:
+    enabled: true
+    image: buildbrain/project-service:latest
+    port: 5000
+    replicas: 1
+  auth-service:
+    enabled: true
+    image: buildbrain/auth-service:latest
+    port: 5100
+    replicas: 1
+  ai-service:
+    enabled: true
+    image: buildbrain/ai-service:latest
+    port: 8000
+    replicas: 1
+  payment-service:
+    enabled: true
+    image: buildbrain/payment-service:latest
+    port: 5200
+    replicas: 1
+  blueprint-agent:
+    enabled: true
+    image: buildbrain/blueprint-agent:latest
+    port: 8100
+    replicas: 1
+
+resources: {}
+
+serviceAccount:
+  create: false
+
+ingress:
+  enabled: false
+  hosts: []
+replicaCount: 1
+
+image:
+  repository: buildbrain
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

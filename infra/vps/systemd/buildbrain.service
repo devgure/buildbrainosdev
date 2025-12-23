@@ -1,0 +1,16 @@
+[Unit]
+Description=BuildBrain docker-compose service
+After=docker.service
+
+[Service]
+Type=notify
+WorkingDirectory=/opt/buildbrain
+TimeoutStartSec=0
+ExecStartPre=/usr/bin/docker compose -f /opt/buildbrain/docker-compose.yml pull
+ExecStart=/usr/bin/docker compose -f /opt/buildbrain/docker-compose.yml up -d
+ExecStop=/usr/bin/docker compose -f /opt/buildbrain/docker-compose.yml down
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

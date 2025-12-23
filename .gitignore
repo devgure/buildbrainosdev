@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.venv/
+__pycache__/
+env/
+*.sqlite
+/.expo
+.expo-shared
+data/mongodb/
+/*.log
+docker-compose.override.yml
+/.DS_Store
